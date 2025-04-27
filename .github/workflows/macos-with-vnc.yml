@@ -12,6 +12,9 @@ jobs:
 
     - name: Checkout repository
       uses: actions/checkout@v2
+
+    - name: Change to working directory
+      run: cd $HOME
     
     - name: Setting the environment up.
       env:
