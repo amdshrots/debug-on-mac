@@ -29,8 +29,8 @@ sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resourc
 sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -activate
 
 # Install ngrok
-brew install --cask ngrok
+brew install --cask localxpose
 
 # Configure ngrok and start it
-ngrok authtoken $3
-ngrok tcp 5900 &
+loclx account login --access-token U8iypoIb53WrwTjtqyeQZQ4cMp5QrIm1hRgBQV7W
+loclx tunnel tcp --port 5900 &
