@@ -33,4 +33,4 @@ brew install --cask localxpose
 
 # Configure ngrok and start it
 loclx account login --access-token U8iypoIb53WrwTjtqyeQZQ4cMp5QrIm1hRgBQV7W
-loclx tunnel tcp --port 5900 &
+loclx tunnel tcp --port 5900 --region eu &
