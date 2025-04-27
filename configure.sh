@@ -28,9 +28,4 @@ echo $2 | perl -we 'BEGIN { @k = unpack "C*", pack "H*", "1734516E8BA8C5E2FF1C39
 sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -restart -agent -console
 sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -activate
 
-# Install ngrok
-brew install --cask localxpose
-
-# Configure ngrok and start it
-loclx account login --access-token U8iypoIb53WrwTjtqyeQZQ4cMp5QrIm1hRgBQV7W
-loclx tunnel tcp --port 5900 --region eu &
+ssh -p 443 -R0:localhost:5900 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 gtcxZbEfnfR+tcp@us.free.pinggy.io
