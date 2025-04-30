@@ -19,7 +19,7 @@ jobs:
     - name: Start Pinggy TCP tunnel
       run: |
         # Use TCP tunnel (-R) for port 5900 (VNC). $PINGGY_TOKEN is a secret.
-        ./pinggy -p 443 -R0:localhost:5900 ${{ secrets.PINGGY_TOKEN }}+tcp@a.pinggy.io &
+        ./pinggy -p 443 -R0:localhost:5900 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 gtcxZbEfnfR+tcp@free.pinggy.io &
         echo "Pinggy VNC tunnel started; check the runner logs for the public URL."
 
     - name: Keep job alive
