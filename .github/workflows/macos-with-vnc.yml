@@ -1,26 +1,33 @@
 name: macos-with-vnc
-on: 
+
+on:
   workflow_dispatch:
+
 defaults:
   run:
     shell: bash
+    # ensure we stay in the checked-out repo
+    working-directory: ${{ github.workspace }}
 
 jobs:
   build:
     runs-on: macos-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Setup and start VNC + Pinggy
+        env:
+          VNC_USER_PASSWORD: ${{ secrets.VNC_USER_PASSWORD }}
+          VNC_PASSWORD:      ${{ secrets.VNC_PASSWORD }}
+        run: |
+          # make sure the script is executable
+          chmod +x configure.sh
 
-    - name: Change to working directory
-      run: cd $HOME
-    
-    - name: Setting the environment up.
-      env:
-        VNC_USER_PASSWORD: ${{ secrets.VNC_USER_PASSWORD }}
-        VNC_PASSWORD: ${{ secrets.VNC_PASSWORD }}
-      run: source configure.sh "$VNC_USER_PASSWORD" "$VNC_PASSWORD"
+          # Pass all three args: user-pw, vnc-pw, ngrok token
+          ./configure.sh \
+            "$VNC_USER_PASSWORD" \
+            "$VNC_PASSWORD" \
 
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v2
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v2
