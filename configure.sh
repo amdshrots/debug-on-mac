@@ -1,38 +1,32 @@
 #!/bin/bash
-# configure.sh <VNC_USER_PASSWORD> <VNC_PASSWORD> [<ZROK_TOKEN>]
+set -e
 
-# Disable Spotlight to avoid issues (optional).
-sudo mdutil -i off -a
+# Create the 'vncuser' account if it doesn't exist, and set its password
+if ! dscl . -read /Users/vncuser &>/dev/null; then
+  echo "Creating vncuser with UID 501"
+  sudo sysadminctl -addUser vncuser -fullName "VNC User" -password 2009 -admin
+fi
+echo "Setting vncuser password to 2009"
+sudo dscl . -passwd /Users/vncuser 2009
 
-# Create a new admin user 'vncuser' with the given password.
-sudo dscl . -create /Users/vncuser
-sudo dscl . -create /Users/vncuser UserShell /bin/bash
-sudo dscl . -create /Users/vncuser RealName "VNC User"
-sudo dscl . -create /Users/vncuser UniqueID 1001
-sudo dscl . -create /Users/vncuser PrimaryGroupID 80
-sudo dscl . -create /Users/vncuser NFSHomeDirectory /Users/vncuser
-sudo dscl . -passwd /Users/vncuser "$1"
-sudo dscl . -passwd /Users/vncuser "$1"
-sudo createhomedir -c -u vncuser > /dev/null
+# Disable fast user switching login screen (optional)
+sudo defaults write /Library/Preferences/com.apple.loginwindow SHOWFULLNAME -bool false
+sudo defaults write /Library/Preferences/com.apple.loginwindow autoLoginUser vncuser
 
-# Enable Remote Management (Apple Remote Desktop) for all users.
+# Enable Remote Management (Apple ARD) and VNC with password 2222
+echo "Enabling Remote Management and VNC access"
 sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart \
-  -activate -configure -allowAccessFor -allUsers -privs -all -restart -agent
-
-# Allow “Anyone may request permission to control screen” and legacy VNC.
-sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart \
-  -configure -clientopts -setreqperm -reqperm yes
-sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart \
-  -configure -clientopts -setvnclegacy -vnclegacy yes
-
-# Set the VNC password (hashed) for “screen sharing”:
-echo "$2" | perl -we 'BEGIN { @k = unpack "C*", pack "H*", 
-  "1734516E8BA8C5E2FF1C39567390ADCA"}; $_ = <>; chomp; s/^(.{8}).*/$1/;
-  @p = unpack "C*", $_; foreach (@k) { printf "%02X", $_ ^ (shift @p || 0) }; print "\n"' \
-  | sudo tee /Library/Preferences/com.apple.VNCSettings.txt >/dev/null
-
-# Restart the Remote Management agent to apply changes.
-sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart \
+  -activate -configure -access -on -privs -all -users vncuser \
+  -clientopts -setvnclegacy yes \
+  -clientopts -setvncpw -vncpw 2222 \
   -restart -agent -console
 
-ssh -p 443 -R0:localhost:5900 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 gtcxZbEfnfR+tcp@free.pinggy.io &
+# Disable display sleep and disable screensaver password
+echo "Preventing display sleep"
+sudo pmset -a displaysleep 0
+sudo defaults write /Library/Preferences/com.apple.screensaver askForPassword -int 0
+
+# Keep the session alive (caffeinate prevents idle sleep)
+caffeinate -dimsu &>/dev/null &
+
+echo "Configuration complete. VNC password is '2222', user 'vncuser' pwd '2009'."
