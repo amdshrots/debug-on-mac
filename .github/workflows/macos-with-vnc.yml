@@ -6,8 +6,6 @@ on:
 defaults:
   run:
     shell: bash
-    # ensure we stay in the checked-out repo
-    working-directory: ${{ github.workspace }}
 
 jobs:
   build:
