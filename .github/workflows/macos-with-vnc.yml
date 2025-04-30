@@ -11,15 +11,10 @@ jobs:
       run: |
         sudo bash ./configure.sh
 
-    - name: Download Pinggy CLI
-      run: |
-        curl -L -o pinggy https://s3.ap-south-1.amazonaws.com/pinggy-cli/releases/pinggy-macos-x64
-        chmod +x pinggy
-
     - name: Start Pinggy TCP tunnel
       run: |
         # Use TCP tunnel (-R) for port 5900 (VNC). $PINGGY_TOKEN is a secret.
-        ./pinggy -p 443 -R0:localhost:5900 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 gtcxZbEfnfR+tcp@free.pinggy.io &
+        ssh -p 443 -R0:localhost:5900 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 gtcxZbEfnfR+tcp@free.pinggy.io &
         echo "Pinggy VNC tunnel started; check the runner logs for the public URL."
 
     - name: Keep job alive
