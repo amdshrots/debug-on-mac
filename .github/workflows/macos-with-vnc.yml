@@ -1,31 +1,25 @@
-name: macos-with-vnc
+name: macOS with VNC
 
-on:
-  workflow_dispatch:
-
-defaults:
-  run:
-    shell: bash
+on: workflow_dispatch
 
 jobs:
-  build:
-    runs-on: macos-latest
+  vnc:
+    runs-on: macos-14
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Setup and start VNC + Pinggy
+      - name: Grant execute permissions
+        run: chmod +x ./configure.sh
+
+      - name: Configure VNC and start pinggy
+        # Run the script as root to set up VNC, user, and tunnel
+        run: |
+          sudo ./configure.sh "$VNC_USER_PASSWORD" "$VNC_PASSWORD" 
         env:
           VNC_USER_PASSWORD: ${{ secrets.VNC_USER_PASSWORD }}
           VNC_PASSWORD:      ${{ secrets.VNC_PASSWORD }}
-        run: |
-          # make sure the script is executable
-          chmod +x configure.sh
 
-          # Pass all three args: user-pw, vnc-pw, ngrok token
-          ./configure.sh \
-            "$VNC_USER_PASSWORD" \
-            "$VNC_PASSWORD" \
-
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v2
+      - name: Keep runner alive
+        # Prevent the job from exiting so the VM stays up for VNC
+        run: while true; do sleep 3600; done
