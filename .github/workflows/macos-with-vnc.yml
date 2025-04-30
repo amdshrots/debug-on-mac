@@ -1,21 +1,43 @@
-name: macos-with-vnc
+name: MacOS VNC Setup
+
 on: [push]
+
 jobs:
   vnc:
-    runs-on: macos-latest
+    runs-on: macos-14
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - name: Create VNC user
+        run: |
+          # 1. Add new user 'vncuser' with password
+          sudo sysadminctl -addUser vncuser -fullName "VNC User" -password 'P@ssw0rd123' || echo "User already exists"
+          # (Optional) add user to admin group for wide permissions
+          sudo dseditgroup -o edit -a vncuser -t user admin
 
-    - name: Run setup script
-      run: |
-        sudo bash ./configure.sh
+      - name: Enable Remote Management and Screen Sharing
+        run: |
+          # 2. Activate Remote Management for vncuser
+          sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart \
+            -activate -configure -allowAccessFor -specifiedUsers \
+            -configure -access -on -users vncuser -privs -all -restart -agent
 
-    - name: Start Pinggy TCP tunnel
-      run: |
-        # Use TCP tunnel (-R) for port 5900 (VNC). $PINGGY_TOKEN is a secret.
-        ssh -p 443 -R0:localhost:5900 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 gtcxZbEfnfR+tcp@free.pinggy.io &
-        echo "Pinggy VNC tunnel started; check the runner logs for the public URL."
+          # 3. Load the Screen Sharing daemon (port 5900)
+          sudo launchctl load -w /System/Library/LaunchDaemons/com.apple.screensharing.plist
 
-    - name: Keep job alive
-      run: sleep 3600
+          # 4. Grant TCC permissions: allow screen capture & control by ScreenSharing agent
+          TCC_DB="/Library/Application Support/com.apple.TCC/TCC.db"
+          EPOCH=$(date +%s)
+          sudo sqlite3 "${TCC_DB}" "BEGIN TRANSACTION; \
+            DELETE FROM access WHERE client='com.apple.screensharing.agent'; \
+            INSERT INTO access(service,client,client_type,auth_value,auth_reason,auth_version,indirect_object_identifier_type,flags,last_modified,last_reminded) VALUES \
+            ('kTCCServiceScreenCapture','com.apple.screensharing.agent',0,2,4,1,0,0,${EPOCH},${EPOCH}), \
+            ('kTCCServicePostEvent','com.apple.screensharing.agent',0,2,4,1,0,0,${EPOCH},${EPOCH}); \
+            COMMIT;"
+
+      - name: Start Pinggy tunnel for VNC
+        # Replace with actual Pinggy command to expose port 5900 (example below assumes a CLI)
+        run: |
+          ssh -p 443 -R0:localhost:5900 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 gtcxZbEfnfR+tcp@free.pinggy.io
+
+      - name: Output VNC endpoint
+        run: |
+          echo "VNC should now be accessible via the Pinggy URL on port 5900."
