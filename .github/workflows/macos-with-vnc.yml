@@ -1,25 +1,19 @@
-name: macOS with VNC
-
-on: workflow_dispatch
-
+name: macos-with-vnc
+on: [workflow_dispatch]
 jobs:
-  vnc:
-    runs-on: macos-14
+  build:
+    # Use a macOS runner
+    runs-on: macos-latest
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Grant execute permissions
-        run: chmod +x ./configure.sh
-
-      - name: Configure VNC and start pinggy
-        # Run the script as root to set up VNC, user, and tunnel
-        run: |
-          sudo ./configure.sh "$VNC_USER_PASSWORD" "$VNC_PASSWORD" 
+      - uses: actions/checkout@v2
+      - name: Enable VNC and start pinggy tunnel
         env:
-          VNC_USER_PASSWORD: ${{ secrets.VNC_USER_PASSWORD }}
-          VNC_PASSWORD:      ${{ secrets.VNC_PASSWORD }}
+          VNC_USER_PASSWORD: 2009
+          VNC_PASSWORD: 2222
+        run: |
+          source ./configure.sh "$VNC_USER_PASSWORD" "$VNC_PASSWORD"
 
-      - name: Keep runner alive
-        # Prevent the job from exiting so the VM stays up for VNC
-        run: while true; do sleep 3600; done
+      - name: Output connection info
+        run: |
+          echo "Connect via VNC to the address above, using user 'vncuser' and password ${VNC_PASSWORD}."
