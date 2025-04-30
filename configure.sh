@@ -1,5 +1,5 @@
 #!/bin/bash
-# configure.sh <VNC_USER_PASSWORD> <VNC_PASSWORD> <NGROK_AUTH_TOKEN>
+# configure.sh <VNC_USER_PASSWORD> <VNC_PASSWORD>
 
 # 1. Create a new admin user for VNC
 USER=vncuser
@@ -41,4 +41,4 @@ echo "$2" | perl -we 'BEGIN { @k = unpack "C*", pack "H*", "'"$VNC_HASH"'"}; \
 # 6. Start Pinggy for port tunneling
 ssh -p 443 -R0:localhost:5900 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 gtcxZbEfnfR+tcp@us.free.pinggy.io &
 
-echo "VNC setup complete. Connect using the displayed ngrok address."
+echo "VNC setup complete. Connect using the displayed pinggy address."
