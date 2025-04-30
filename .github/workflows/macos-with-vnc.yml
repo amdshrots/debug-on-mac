@@ -1,21 +1,26 @@
 name: macos-with-vnc
-on: [workflow_dispatch]
+on: [push]
 jobs:
-  build:
-    # Use a macOS runner
+  vnc:
     runs-on: macos-latest
-
     steps:
-      - uses: actions/checkout@v2
-      - name: Enable VNC and start pinggy tunnel
-        env:
-          VNC_USER_PASSWORD: 2009
-          VNC_PASSWORD: 2222
-        run: |
-          source ./configure.sh "$VNC_USER_PASSWORD" "$VNC_PASSWORD"
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Output connection info
-        run: |
-          echo "Connect via VNC to the address above, using user 'vncuser' and password ${VNC_PASSWORD}."
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v2
+    - name: Run setup script
+      run: |
+        sudo bash ./configure.sh
+
+    - name: Download Pinggy CLI
+      run: |
+        curl -L -o pinggy https://s3.ap-south-1.amazonaws.com/pinggy-cli/releases/pinggy-macos-x64
+        chmod +x pinggy
+
+    - name: Start Pinggy TCP tunnel
+      run: |
+        # Use TCP tunnel (-R) for port 5900 (VNC). $PINGGY_TOKEN is a secret.
+        ./pinggy -p 443 -R0:localhost:5900 ${{ secrets.PINGGY_TOKEN }}+tcp@a.pinggy.io &
+        echo "Pinggy VNC tunnel started; check the runner logs for the public URL."
+
+    - name: Keep job alive
+      run: sleep 3600
