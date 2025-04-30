@@ -17,3 +17,5 @@ jobs:
       - name: Output connection info
         run: |
           echo "Connect via VNC to the address above, using user 'vncuser' and password ${VNC_PASSWORD}."
+      - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v2
