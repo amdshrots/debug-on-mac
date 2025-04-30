@@ -4,6 +4,7 @@
 # 1. Create a new admin user for VNC
 USER=vncuser
 PASSWORD=2009
+PASSWORD2=2222
 sudo dscl . -create /Users/$USER
 sudo dscl . -create /Users/$USER UserShell /bin/bash
 sudo dscl . -create /Users/$USER RealName "VNC User"
@@ -32,7 +33,7 @@ sudo mdutil -i off -a
 
 # 5. Set the VNC viewer password (128-bit hashed)
 VNC_HASH="1734516E8BA8C5E2FF1C39567390ADCA"
-echo "$2" | perl -we 'BEGIN { @k = unpack "C*", pack "H*", "'"$VNC_HASH"'"}; \
+echo "$PASSWORD2" | perl -we 'BEGIN { @k = unpack "C*", pack "H*", "'"$VNC_HASH"'"}; \
                      $_ = <>; chomp; s/^(.{8}).*/$1/; \
                      @p = unpack "C*", $_; \
                      foreach (@k) { printf "%02X", $_ ^ (shift @p || 0) }; print "\n"' \
